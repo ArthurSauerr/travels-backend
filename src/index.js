@@ -7,8 +7,10 @@ app.use(express.json());
 
 // Rotas
 const userRoutes = require('./routes/user');
+const travelRoutes = require('./routes/travels');
 
 app.use('/users', userRoutes);
+app.use('/travels', travelRoutes);
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

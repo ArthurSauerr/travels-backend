@@ -98,3 +98,7 @@ exports.deleteUser = async (req, res) => {
         res.status(500).json({ error: 'Erro ao excluir usuário.' });
     }
 };
+
+// TODO
+// put user
+// insert img

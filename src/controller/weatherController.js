@@ -10,4 +10,14 @@ async function getLocationByName(locationParam) {
     }
 }
 
-module.exports = { getLocationByName };
+async function getWeatherInfo(lat, lon) {
+    try{
+        const response = await axios.get(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=wind_speed_10m&timezone=America%2FSao_Paulo`);
+        return response.data;
+    } catch(error) {
+        console.error('Erro ao buscar dados da API:', error);
+        throw error;
+    }
+}
+
+module.exports = { getLocationByName, getWeatherInfo };

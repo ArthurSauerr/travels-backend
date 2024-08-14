@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-async function getDataFromAPI(locationParam) {
+async function getLocationByName(locationParam) {
     try {
         const response = await axios.get(`https://geocoding-api.open-meteo.com/v1/search?name=${locationParam}&count=1`);
         return response.data;
@@ -10,4 +10,4 @@ async function getDataFromAPI(locationParam) {
     }
 }
 
-module.exports = { getDataFromAPI };
+module.exports = { getLocationByName };

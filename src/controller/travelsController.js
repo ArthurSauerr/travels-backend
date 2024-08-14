@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const { getLocationByName } = require('../controller/weatherController');
 
 exports.newTravel = async (req, res) => {
     const {
@@ -34,7 +35,7 @@ exports.newTravel = async (req, res) => {
     }
 };
 
-exports.getTravelsByUserId = async(req, res) => {
+exports.getTravelsByUserId = async (req, res) => {
     const { id } = req.user;
 
     try { 
@@ -45,8 +46,17 @@ exports.getTravelsByUserId = async(req, res) => {
             return res.status(404).send('Usuário não encontrado.');
         }
         const travels = await client.query('SELECT * FROM travels WHERE user_id = $1', [id]);
+        const locationsPromises = travels.rows.map(travel => getLocationByName(travel.location));
+        const locationsData = await Promise.all(locationsPromises);
         client.release();
-        res.status(200).json({ travels: travels.rows });
+
+        const travelsWithLocation = travels.rows.map((travel, index) => {
+            return {
+                ...travel,
+                locationData: locationsData[index]
+            };
+        });
+        res.status(200).json({ travels: travelsWithLocation });
     } catch(error) {
         console.error('Erro ao buscar viagens: ', error);
         res.status(500).json({ error: 'Erro ao buscar viagens!' });

@@ -11,7 +11,7 @@ CREATE TABLE users(
 );
 
 CREATE TABLE travels(
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id SERIAL PRIMARY KEY,
     location TEXT NOT NULL,
     locationImg BYTEA NOT NULL,
     nativeLanguage TEXT,
@@ -30,7 +30,7 @@ CREATE TABLE travels(
 );
 
 CREATE TABLE posts(
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id SERIAL PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
     postdate DATE NOT NULL,
     likes INT NOT NULL, 
@@ -41,8 +41,3 @@ CREATE TABLE posts(
     CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id),
     CONSTRAINT fk_travels FOREIGN KEY(travels_id) REFERENCES travels(id)
 );
-
---TODO
---Posts precisam ter informações do tempo do local
---API Para pegar o clima a partir da lat e long: https://open-meteo.com/en/docs
---API Para pegar lat e long do local a partir de um nome: https://open-meteo.com/en/docs/geocoding-api

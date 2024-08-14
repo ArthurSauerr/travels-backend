@@ -1,5 +1,5 @@
 const pool = require('../config/database');
-const { getLocationByName } = require('../controller/weatherController');
+const { getLocationByName, getWeatherInfo } = require('../controller/weatherController');
 
 exports.newTravel = async (req, res) => {
     const {
@@ -60,6 +60,39 @@ exports.getTravelsByUserId = async (req, res) => {
     } catch(error) {
         console.error('Erro ao buscar viagens: ', error);
         res.status(500).json({ error: 'Erro ao buscar viagens!' });
+    }
+};
+
+exports.getTravelById = async (req, res) => {
+    const { travel_id } = req.body;
+
+    try {
+        const client = await pool.connect();
+        const travelExists = await client.query('SELECT * FROM travels WHERE id = $1', [travel_id]);
+        if(travelExists.rows.length > 0) {
+            const locationData = await getLocationByName(travelExists.rows[0].location);
+            console.log(locationData);
+
+            const lat = locationData.results[0].latitude;
+            const lon = locationData.results[0].longitude;
+            const weatherData = await getWeatherInfo(lat, lon);
+            client.release();
+
+            const travelWithLocation = travelExists.rows.map((travel) => {
+                return{
+                    ...travel,
+                    locationData: locationData,
+                    weatherData: weatherData
+                };
+            });
+            res.status(200).json({ travel: travelWithLocation });
+        } else {
+            client.release();
+            res.status(404).send('Viagem não encontrada.');
+        }
+    } catch(error) {
+        console.error('Erro ao buscar viagem: ', error);
+        res.status(500).json({ error: 'Erro ao buscar viagem!' });
     }
 };
 

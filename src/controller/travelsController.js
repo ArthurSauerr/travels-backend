@@ -1,39 +1,49 @@
 const pool = require('../config/database');
 const { getLocationByName, getWeatherInfo } = require('../controller/weatherController');
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() });
 
 exports.newTravel = async (req, res) => {
-    const {
-        location, nativeLanguage, languageSpoken, 
-        passportReq, distanceToBrazil, flightCompany, 
-        flightClass, flightPrice, hostingType, 
-        hostingDays, hostingDailyPrice, hostingScore 
-    } = req.body;
-
-    const { id } = req.user;
-
-    try {
-        const client = await pool.connect();
-        const userExists = await client.query('SELECT * FROM users WHERE id = $1', [id]);
-        if (userExists.rows.length === 0) {
-            client.release();
-            return res.status(404).send('Usuário não encontrado.');
+    upload.single('locationImg')(req, res, async (err) => {
+        if (err) {
+            return res.status(500).json({ error: 'Erro ao fazer upload da imagem.' });
         }
-        const newTravel = await client.query(
-            'INSERT INTO travels (location, nativeLanguage, languageSpoken, passportReq, distanceToBrazil, flightCompany, flightClass, flightPrice, hostingType, hostingDays, hostingDailyPrice, hostingScore, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *',
-            [
-                location, nativeLanguage, languageSpoken, 
-                passportReq, distanceToBrazil, flightCompany, 
-                flightClass, flightPrice, hostingType, 
-                hostingDays, hostingDailyPrice, hostingScore, id 
-            ]
-        );
-        client.release();
-        res.status(201).json({ message: 'Viagem registrada com sucesso!', travel: newTravel.rows[0] });
-    } catch (error) {
-        console.error('Erro ao registrar viagem: ', error);
-        res.status(500).json({ error: 'Erro ao registrar viagem!' });
-    }
+
+        const {
+            location, nativeLanguage, languageSpoken, 
+            passportReq, distanceToBrazil, flightCompany, 
+            flightClass, flightPrice, hostingType, 
+            hostingDays, hostingDailyPrice, hostingScore 
+        } = req.body;
+
+        const { id } = req.user;
+        const locationImg = req.file ? req.file.buffer : null;
+
+        try {
+            const client = await pool.connect();
+            const userExists = await client.query('SELECT * FROM users WHERE id = $1', [id]);
+            if (userExists.rows.length === 0) {
+                client.release();
+                return res.status(404).send('Usuário não encontrado.');
+            }
+            const newTravel = await client.query(
+                'INSERT INTO travels (location, locationImg, nativeLanguage, languageSpoken, passportReq, distanceToBrazil, flightCompany, flightClass, flightPrice, hostingType, hostingDays, hostingDailyPrice, hostingScore, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *',
+                [
+                    location, locationImg, nativeLanguage, languageSpoken, 
+                    passportReq, distanceToBrazil, flightCompany, 
+                    flightClass, flightPrice, hostingType, 
+                    hostingDays, hostingDailyPrice, hostingScore, id 
+                ]
+            );
+            client.release();
+            res.status(201).send('Viagem cadastrada com sucesso.');
+        } catch (error) {
+            console.error('Erro ao registrar viagem: ', error);
+            res.status(500).json({ error: 'Erro ao registrar viagem!' });
+        }
+    });
 };
+
 
 exports.getTravelsByUserId = async (req, res) => {
     const { id } = req.user;
@@ -71,8 +81,6 @@ exports.getTravelById = async (req, res) => {
         const travelExists = await client.query('SELECT * FROM travels WHERE id = $1', [travel_id]);
         if(travelExists.rows.length > 0) {
             const locationData = await getLocationByName(travelExists.rows[0].location);
-            console.log(locationData);
-
             const lat = locationData.results[0].latitude;
             const lon = locationData.results[0].longitude;
             const weatherData = await getWeatherInfo(lat, lon);

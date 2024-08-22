@@ -37,7 +37,7 @@ CREATE TABLE posts(
     tag1 TEXT,
     tag2 TEXT,
     user_id UUID,
-    travels_id UUID,
+    travels_id SERIAL,
     CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id),
     CONSTRAINT fk_travels FOREIGN KEY(travels_id) REFERENCES travels(id)
 );

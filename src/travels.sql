@@ -36,8 +36,8 @@ CREATE TABLE posts(
     likes INT NOT NULL, 
     tag1 TEXT,
     tag2 TEXT,
-    user_id UUID,
-    travels_id SERIAL,
+    user_id UUID NOT NULL,
+    travels_id SERIAL NOT NULL,
     CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id),
     CONSTRAINT fk_travels FOREIGN KEY(travels_id) REFERENCES travels(id)
 );

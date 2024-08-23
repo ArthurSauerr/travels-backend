@@ -5,7 +5,8 @@ const { validateToken } = require('../security/auth');
 
 router.post('/signup', userController.signup);
 router.post('/signin', userController.signin);
-router.delete('/delete', validateToken, userController.deleteUser);
 router.get('/read', userController.readUser);
+router.put('/update', validateToken, userController.updateUser);
+router.delete('/delete', validateToken, userController.deleteUser);
 
 module.exports = router;

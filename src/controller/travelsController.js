@@ -79,12 +79,12 @@ exports.getTravelById = async (req, res) => {
     try {
         const client = await pool.connect();
         const travelExists = await client.query('SELECT * FROM travels WHERE id = $1', [travel_id]);
+        client.release();
         if(travelExists.rows.length > 0) {
             const locationData = await getLocationByName(travelExists.rows[0].location);
             const lat = locationData.results[0].latitude;
             const lon = locationData.results[0].longitude;
             const weatherData = await getWeatherInfo(lat, lon);
-            client.release();
 
             const travelWithLocation = travelExists.rows.map((travel) => {
                 return{
@@ -95,7 +95,6 @@ exports.getTravelById = async (req, res) => {
             });
             res.status(200).json({ travel: travelWithLocation });
         } else {
-            client.release();
             res.status(404).send('Viagem não encontrada.');
         }
     } catch(error) {
